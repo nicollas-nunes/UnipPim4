@@ -1,0 +1,21 @@
+# Dependências (cada pessoa gera com: cd api && npm install)
+node_modules/
+
+# SEGREDOS: senha do banco e chave do JWT. NUNCA vão para o Git.
+.env
+.env.*
+!.env.example
+
+# Logs e lixo do sistema
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Arquivos temporários
+tmp/
+*.tmp

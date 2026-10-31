@@ -1,5 +1,7 @@
 # Passo a passo das evoluções
 
+> **Atenção:** as Fases 1 a 7 abaixo foram feitas quando a API era em Node.js, por isso citam arquivos como `api/src/routes/auth.js`, `.env` e `npm`. Depois delas, a API foi **migrada para C# (HytechApi)** e o Node foi removido. As regras, rotas e procedures descritas continuam valendo; só o código mudou de lugar. A tabela de equivalência (`auth.js` → `AuthEndpoints.cs` etc.) e tudo o que foi acrescentado está em **`MIGRACAO_NODE_PARA_CSHARP.md`**.
+
 ## Fase 1 — Login, cadastro, config de chaves e matérias  ✅ feita
 
 ### O que foi criado
@@ -148,7 +150,7 @@ O professor cria aulas, questões e desafios, salva rascunho, envia para aprova�
 
 ### ⚠️ O que mudou no comportamento (leia)
 1. **"Enviar" não publica mais na hora.** Vai para a fila de aprovação; o **administrador aprova no HytechAdmin (Windows)**. Só depois o conteúdo aparece para os alunos. O botão agora se chama "Enviar para aprovação".
-2. **Aula de professor é conteúdo EXTRA e paga 0 chaves.** Sem isso ela viraria obrigatória para o certificado de todos os alunos. O admin pode ajustar no WinForms.
+2. **Aula de professor é conteúdo EXTRA e paga 0 chaves.** Sem isso ela viraria obrigatória para o certificado de todos os alunos. **Correção:** o HytechAdmin (WinForms) atual NÃO tem campos para mudar `is_extra`/chaves de uma aula; isso só se altera direto no banco (ou numa futura tela do admin).
 3. **O professor só cria conteúdo da própria especialidade** (a matéria fica travada no formulário). A especialidade é definida só pelo admin; o botão de editar especialidade saiu do perfil.
 4. **Questão aprovada passa a valer para o certificado** dos alunos que ainda não o têm (regra do banco).
 5. **Desafio do aluno:** o aluno lê o enunciado e clica em "Marcar como concluído" (sem correção automática) e ganha as chaves uma única vez (5/10/15). Se preferir não creditar por autodeclaração, é só trocar o botão por um aviso.
@@ -190,11 +192,43 @@ Saíram todos os dados de mentira do professor (`LQ_STORE`, listas, turma e desa
 
 ## Extra — Certificado em PDF e tela de parabéns  ✅ feito
 
-- **PDF profissional** (A4 paisagem, texto selecionável) gerado no próprio navegador por `web/js/certificado.js` + jsPDF (`web/js/vendor/`, carregado só quando o aluno pede). Nada é enviado a servidor. Traz as informações do TXT (aluno, módulo, data de conclusão, status "Concluído com Êxito", data/hora de emissão, plataforma HYTECH) com a estrela embaixo do título "CERTIFICADO DE CONCLUSÃO".
+- **PDF profissional** (A4 paisagem, texto selecionável) gerado no próprio navegador por `web/js/certificado.js` + jsPDF (`web/js/vendor/`, carregado só quando o aluno pede). Nada é enviado a servidor. Traz aluno, módulo, data de conclusão, status "Concluído com Êxito", data/hora de emissão, plataforma HYTECH, com a estrela embaixo do título "CERTIFICADO DE CONCLUSÃO".
 - **Cores por matéria**, iguais às medalhas: Programação (ciano), Design (magenta), Banco de Dados (azul royal), Redes (verde). A estrela também tem uma versão colorida para cada matéria (`web/assets/certificado/estrela-*.webp`; a original `estrela.webp` ficou como base).
-- **Tela de parabéns** (quando o aluno fecha a matéria): mascote comemorando (`assets/mascote/pose-corpo-1.png`) com estrelinhas roxas piscando, estrela e medalha da matéria, chips de status/data/chaves, botões **Baixar certificado (PDF)** e **Imprimir**, e o botão de desbloquear a próxima matéria. O TXT virou um link pequeno. A medalha apagada do fundo saiu.
+- **Tela de parabéns** (quando o aluno fecha a matéria): mascote comemorando (`assets/mascote/pose-corpo-1.png`) com estrelinhas roxas piscando, estrela e medalha da matéria, chips de status/data/chaves, botões **Baixar certificado (PDF)** e **Imprimir**, e o botão de desbloquear a próxima matéria. A medalha apagada do fundo saiu.
 - O texto "— Python" que aparecia em todas as matérias foi removido do módulo.
 - ⚠️ O PDF foi conferido em imagem (as 4 matérias) e o download testado no navegador; ainda não foi aberto em impressora real. Nomes com caracteres fora do alfabeto latino (ex.: japonês) aparecem sem esses caracteres no PDF.
+
+## PIM 4 — Certificado TXT removido  ✅ feito
+
+O comprovante em `.txt` foi **removido por completo** (botão "ou baixar comprovante simples (.txt)", a função `gerarComprovanteTXT` e o estilo `.cc-txt` em `web/index.html`). O certificado em **PDF** (baixar e imprimir, `web/js/certificado.js`) continua igual. API, banco e testes não tinham nada de TXT e não foram alterados. As menções antigas ao TXT na tabela da Fase 3 e em `docs/RELATORIO_INTERFACE.md` ficaram como registro histórico.
+
+## Fase 7 — Verificação por e-mail e conta  ✅ feita
+
+**O que mudou para quem usa o site**
+- **Cadastro com código:** o aluno preenche o formulário, recebe um código de 6 dígitos no e-mail e só então a conta é criada (e já entra logado). Tem "Reenviar código" (espera de 30 s).
+- **Esqueci a senha** (aluno e professor): link no login → e-mail → código + nova senha. A resposta é igual exista o e-mail ou não (não revela quem tem conta).
+- **Trocar senha** (perfil do aluno e do professor): senha atual + nova + confirmação, depois código por e-mail. A tela antiga que trocava direto saiu.
+- **Trocar e-mail:** novo e-mail + senha atual; o código vai para o **novo** endereço e o e-mail só muda depois de confirmar. `PUT /conta/perfil` não aceita mais e-mail novo.
+- **Desativar conta (só aluno):** substitui o "Excluir minha conta" (que era "em breve"). Pede nickname + senha. **Nada é apagado (LGPD):** a conta vira `inativo`, o login é recusado e só o administrador reativa (HytechAdmin → usuários → status). **Professor:** o botão foi removido; a tela diz para falar com o administrador.
+- Tela de código com o robozinho (`web/assets/mascote/robo-verificacao.webp`).
+
+**Como funciona por dentro**
+- Banco (`api/sql/05_verificacao_email.sql`, rodar depois do 04): tabela `CodigoVerificacao` + procedures `sp_CriarCodigoVerificacao`, `sp_ObterCodigoVerificacao`, `sp_RegistrarTentativaCodigo`, `sp_ConsumirCodigo`, `sp_VerificarDisponibilidade`, `sp_DesativarConta`. Só **cria** coisas novas; não mexe no que o WinForms usa.
+- O código **nunca é guardado em texto** (HMAC com a `JWT_KEY`), vale 10 min (`CODIGO_MINUTOS`), tem **5 tentativas**, é de **uso único**, e há limite de 1 pedido a cada 30 s e 5 por hora por e-mail/finalidade.
+- Rotas novas: `POST /auth/cadastro` (agora devolve 202), `/auth/cadastro/confirmar`, `/auth/cadastro/reenviar`, `/auth/esqueci`, `/auth/esqueci/redefinir`, `/conta/senha` (+`/confirmar`), `/conta/email` (+`/confirmar`), `/conta/reenviar`, `/conta/desativar`.
+- **E-mail:** `src/email.js`. Sem `SMTP_HOST` no `.env` roda em **modo console** (o e-mail com o código aparece no terminal da API; nada é enviado). Com `SMTP_*` envia de verdade (Gmail etc.) via nodemailer. Passo a passo: `docs/EMAIL_GMAIL.md`. Em produção a API **recusa subir** sem e-mail configurado (ou `EMAIL_MODO=console`, só para demonstração).
+- ✅ 25 testes novos (`test/fase7.test.js`) e os antigos adaptados; fluxo completo conferido no navegador (cadastro, senha, e-mail, desativar, esqueci a senha, professor).
+- ⚠️ **Nunca testado com SQL Server real nem com envio real de e-mail** (só modo console/memória).
+- ⚠️ O token (JWT) de quem desativou a conta continua valendo até expirar (até 120 min) se alguém o tiver copiado; o site apaga o token na hora. Também vale para quando o admin desativa alguém pelo HytechAdmin. Para cortar na hora seria preciso consultar o banco a cada requisição.
+- ✅ Migração para a API única em C# concluída: veja `MIGRACAO_NODE_PARA_CSHARP.md`.
+
+## Ajuste — Mensagens dos tickets (aluno e professor)  ✅ feito
+
+Texto longo (ou uma palavra gigante sem espaços, como `dddd…` ou um link) não alarga mais a página nem sai do balão. O balão tem largura máxima (75% da conversa, no máximo 520 px), quebra a linha como no WhatsApp e respeita as quebras de linha digitadas (Enter). Também quebram o título do ticket e os itens da lista. Só CSS e o HTML do balão em `web/index.html`; a API não mudou. Conferido no navegador com 400 caracteres seguidos e um link de 300 caracteres: sem rolagem lateral, balões dentro da área, aluno e professor.
+
+## Ajuste — Máscara na data de nascimento (cadastro)  ✅ feito
+
+No cadastro, a pessoa digita só os números (`01022007`) e o campo vira `01/02/2007` sozinho. Aceita colar, ignora letras e limita a 8 dígitos; no celular abre o teclado numérico. A validação e o envio continuam iguais (`DD/MM/AAAA` → `AAAA-MM-DD`). Só `web/index.html`.
 
 ## Decisões em aberto
 - Foto de perfil em base64 dentro do banco funciona, mas pesa; depois podemos guardar arquivo e salvar só a URL.

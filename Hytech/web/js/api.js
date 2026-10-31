@@ -1,5 +1,5 @@
 // ============================================================
-// HYTECH — Cliente da API (front → back-end Node)
+// HYTECH — Cliente da API (front → HytechApi, ASP.NET Core)
 // Todo acesso a dados do site passa por aqui. O token fica só em memória.
 // Para mudar o endereço da API: defina window.HYTECH_API_URL antes de carregar este arquivo.
 // ============================================================

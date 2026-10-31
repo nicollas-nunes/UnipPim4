@@ -1,0 +1,22 @@
+# Compilação (cada pessoa gera com: dotnet build)
+bin/
+obj/
+
+# SEGREDOS: senha do banco, da conta de e-mail e chave do JWT NUNCA vão para o Git.
+# Em dev ficam nos user-secrets (fora da pasta do projeto); em produção, em variáveis de ambiente.
+appsettings.*.local.json
+
+# Logs e lixo do sistema
+*.log
+.DS_Store
+Thumbs.db
+
+# Editor
+.vs/
+.vscode/
+.idea/
+*.user
+
+# Arquivos temporários
+tmp/
+*.tmp

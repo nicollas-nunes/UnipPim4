@@ -2,7 +2,7 @@
 -- SEED DO PRIMEIRO ADMINISTRADOR  (rodar 1x por ambiente, DEPOIS do HytechDB.sql)
 --
 -- NÃO coloque a senha real aqui nem suba este arquivo preenchido para o Git.
--- 1) Gere o hash:   dotnet run --project HytechApi -- --hash "SuaSenhaForte"
+-- 1) Gere o hash:   dotnet run --project api -- --hash "SuaSenhaForte"
 -- 2) Cole o hash abaixo (começa com $2a$ ou $2b$), rode, e depois APAGUE o hash do arquivo.
 -- ============================================================
 USE HytechDB;
